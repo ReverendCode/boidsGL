@@ -48,14 +48,26 @@ function animate() {
 function updatePosition(neighborList) {
 	//perform the boids algorithm here
 	//with credit for this algorithm to: http://www.vergenet.net/~conrad/boids/pseudocode.html
-	var v1 = rule1(self.mesh);
-	var v2 = rule2(self.mesh);
-	var v3 = rule3(self.mesh);
+	var v1 = rule1(this.mesh, neighborList);
+	var v2 = rule2(this.mesh);
+	var v3 = rule3(this.mesh);
 
 	this.velocity = this.velocity + v1 + v2 + v3;
 	this.mesh.position = this.position + this.velocity;
-	
 
+}
+function rule1(mesh, neighbors) {
+	var vector = new THREE.vector3(0,0,0);
+	var nearby = 0;
+	for (boid in neighbors) {
+		if (boid.mesh != mesh && 
+			abs(boid.position - mesh.position) < neighborhood) {
+			vector += boid.position;
+		nearby += 1;
+		}
+	}
+	vector = vector / nearby;
+	return (vector - self.position) / THREE.vector3(100);
 }
 
 
@@ -64,7 +76,7 @@ function getPosition() {
 }
 function getHeading() {
 	//use self.mesh.rotation to determine a heading?
-	return this.mesh.rotation;
+	return normalize(this.velocity);
 }
 
 function Boid(initVelocity, initPosition) {

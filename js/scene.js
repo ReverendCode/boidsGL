@@ -22,7 +22,7 @@ function init (numBoids) {
 	var container = document.body;
 	container.appendChild(renderer.domElement);
 
-	var velocity = new THREE.Vector3(1,0,0);
+	var velocity = new THREE.Vector3(0,0,0);
 	var pos = new THREE.Vector3(0,0,0);
 
 	for (var i = 0; i < numBoids; i++) {
@@ -65,9 +65,9 @@ function updatePosition(neighbors) {
 			// Rule 2:
 			var diff = new THREE.Vector3();
 			if (this.mesh.position.distanceTo(boidList[i].mesh.position) < 10) {
+
 				diff.subVectors(boidList[i].mesh.position, this.mesh.position);
 				vec2 = vec2.sub(diff);
-
 				// vec2 = vec2.sub(boidList[i].mesh.position.sub(this.mesh.position));
 			}
 			// Rule 3:
@@ -84,12 +84,13 @@ function updatePosition(neighbors) {
 		vec3 = vec3.divideScalar(accum);
 		vec3 = vec3.sub(this.velocity);
 		vec3 = vec3.divideScalar(8); //Magic numbers
-		temp = temp.add(vec3);
+		// temp = temp.add(vec3);
 
 	} 
 	temp = temp.add(vec2);
+
 	this.velocity = this.velocity.add(temp);
-	this.velocity.clampScalar(-1,1);
+	this.velocity.clampScalar(-3,3);
 
 	// this.mesh.position = 
 	this.mesh.position.add(this.velocity);

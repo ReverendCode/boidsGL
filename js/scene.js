@@ -11,7 +11,7 @@ function init (numBoids) {
 	camera = new THREE.PerspectiveCamera(viewAngle, aspect, near, far);
 
 	//TODO: this should probably look at the COM for the whole flock
-	camera.position.set(0,0,100);
+	camera.position.set(0,0,200);
 	camera.lookAt(scene.position);
 	renderer = new THREE.WebGLRenderer( {
 		antialias: true,
@@ -22,7 +22,7 @@ function init (numBoids) {
 	var container = document.body;
 	container.appendChild(renderer.domElement);
 
-	var velocity = new THREE.Vector3(0,0,0);
+	var velocity = new THREE.Vector3(1,0,0);
 	var pos = new THREE.Vector3(0,0,0);
 
 	for (var i = 0; i < numBoids; i++) {
@@ -53,46 +53,59 @@ function animate() {
 function updatePosition(neighbors) {
 	var vec1 = new THREE.Vector3();
 	var vec2 = new THREE.Vector3();
-	var vec3 = new THREE.Vector3();
+	var vec3 = 0;// = new THREE.Vector3();
 	var accum = 0;
 	for (i in boidList) {
 		if (this.mesh != boidList[i].mesh &&
-		 this.mesh.position.distanceTo(boidList[i].mesh.position) < 20) {
+		 this.mesh.position.distanceTo(boidList[i].mesh.position) < 500) {
 		// if (this.mesh != boidList[i].mesh) {
 			accum++;
 			// Rule 1:
 			vec1 = vec1.add(boidList[i].mesh.position);
 			// Rule 2:
 			var diff = new THREE.Vector3();
-			if (this.mesh.position.distanceTo(boidList[i].mesh.position) < 10) {
+			if (this.mesh.position.distanceTo(boidList[i].mesh.position) < 5) {
 
 				diff.subVectors(boidList[i].mesh.position, this.mesh.position);
+				// diff.subVectors(this.mesh.position, boidList[i].mesh.position);
 				vec2 = vec2.sub(diff);
 				// vec2 = vec2.sub(boidList[i].mesh.position.sub(this.mesh.position));
 			}
 			// Rule 3:
-			vec3 = vec3.add(boidList[i].velocity);
+			
+			vec3 += boidList[i].velocity.length(); 
 		}
 	}
 	var temp = new THREE.Vector3();
 	if (accum > 0) {
 		vec1 = vec1.divideScalar(accum);
 		vec1 = vec1.sub(this.mesh.position);
-		vec1 = vec1.divideScalar(100); //Magic numbers
+		vec1 = vec1.divideScalar(500); //Magic numbers
 		temp = temp.add(vec1);
 
-		vec3 = vec3.divideScalar(accum);
-		vec3 = vec3.sub(this.velocity);
-		vec3 = vec3.divideScalar(8); //Magic numbers
+		// vec3 = vec3.divideScalar(accum);
+		// vec3 = vec3.sub(this.velocity);
+		// vec3 = vec3.divideScalar(8); //Magic numbers
+		
+		vec3 /= accum;
+		console.log(vec3);
+		vec3 = (vec3 - this.velocity.length()) / 25;
 		// temp = temp.add(vec3);
+		// temp.addScalar(vec3);
 
 	} 
+	vec2.divideScalar(1);
 	temp = temp.add(vec2);
 
-	this.velocity = this.velocity.add(temp);
-	this.velocity.clampScalar(-3,3);
 
-	// this.mesh.position = 
+	// this.velocity.x *= Math.random();
+	// this.velocity.y *= Math.random();
+	this.velocity = this.velocity.add(temp);
+
+	this.velocity.clampScalar(-2,2);
+
+
+	
 	this.mesh.position.add(this.velocity);
 	//TODO: This needs to be generalized (get rid of magic numbers)
 	if (this.mesh.position.y > 50) {

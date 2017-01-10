@@ -57,14 +57,14 @@ function updatePosition(neighbors) {
 	var accum = 0;
 	for (i in boidList) {
 		if (this.mesh != boidList[i].mesh &&
-		 this.mesh.position.distanceTo(boidList[i].mesh.position) < 500) {
+		 this.mesh.position.distanceTo(boidList[i].mesh.position) < 30) {
 		// if (this.mesh != boidList[i].mesh) {
 			accum++;
 			// Rule 1:
 			vec1 = vec1.add(boidList[i].mesh.position);
 			// Rule 2:
 			var diff = new THREE.Vector3();
-			if (this.mesh.position.distanceTo(boidList[i].mesh.position) < 5) {
+			if (this.mesh.position.distanceTo(boidList[i].mesh.position) < 7) {
 
 				diff.subVectors(boidList[i].mesh.position, this.mesh.position);
 				// diff.subVectors(this.mesh.position, boidList[i].mesh.position);
@@ -80,7 +80,7 @@ function updatePosition(neighbors) {
 	if (accum > 0) {
 		vec1 = vec1.divideScalar(accum);
 		vec1 = vec1.sub(this.mesh.position);
-		vec1 = vec1.divideScalar(500); //Magic numbers
+		vec1 = vec1.divideScalar(200); //Magic numbers
 		temp = temp.add(vec1);
 
 		// vec3 = vec3.divideScalar(accum);
@@ -88,7 +88,6 @@ function updatePosition(neighbors) {
 		// vec3 = vec3.divideScalar(8); //Magic numbers
 		
 		vec3 /= accum;
-		console.log(vec3);
 		vec3 = (vec3 - this.velocity.length()) / 25;
 		// temp = temp.add(vec3);
 		// temp.addScalar(vec3);
@@ -100,13 +99,14 @@ function updatePosition(neighbors) {
 
 	// this.velocity.x *= Math.random();
 	// this.velocity.y *= Math.random();
-	this.velocity = this.velocity.add(temp);
+	this.velocity.add(temp);
 
-	this.velocity.clampScalar(-2,2);
+	this.velocity.clampLength(-1,1);
 
 
 	
 	this.mesh.position.add(this.velocity);
+	// this.mesh.lookAt(new THREE.Vector3().addVectors(this.velocity,this.mesh.position) );
 	//TODO: This needs to be generalized (get rid of magic numbers)
 	if (this.mesh.position.y > 50) {
 		this.mesh.position.y = -50;
@@ -125,7 +125,7 @@ function updatePosition(neighbors) {
 }
 
 function boidGeom() {
-	return new THREE.ConeGeometry(1.5,3,16);
+	return new THREE.ConeGeometry(1,4,16);
 }
 
 function boidMat() {

@@ -50,78 +50,90 @@ function animate() {
 	renderer.render(scene, camera);
 }
 
-function updatePosition(neighbors) {
+function ruleOne(neighbors, me) {
 	var vec1 = new THREE.Vector3();
-	var vec2 = new THREE.Vector3();
-	var vec3 = 0;// = new THREE.Vector3();
 	var accum = 0;
-	for (i in boidList) {
-		if (this.mesh != boidList[i].mesh &&
-		 this.mesh.position.distanceTo(boidList[i].mesh.position) < 30) {
-		// if (this.mesh != boidList[i].mesh) {
+	for (i in neighbors) {
+		if (me.mesh != neighbors[i].mesh && 
+			me.mesh.position.distanceTo(neighbors[i].mesh.position) < 200) {
 			accum++;
-			// Rule 1:
-			vec1 = vec1.add(boidList[i].mesh.position);
-			// Rule 2:
-			var diff = new THREE.Vector3();
-			if (this.mesh.position.distanceTo(boidList[i].mesh.position) < 7) {
-
-				diff.subVectors(boidList[i].mesh.position, this.mesh.position);
-				// diff.subVectors(this.mesh.position, boidList[i].mesh.position);
-				vec2 = vec2.sub(diff);
-				// vec2 = vec2.sub(boidList[i].mesh.position.sub(this.mesh.position));
-			}
-			// Rule 3:
-			
-			vec3 += boidList[i].velocity.length(); 
+			vec1.add(neighbors[i].mesh.position);
 		}
 	}
+	vec1.divideScalar(accum);
+	return vec1.sub(me.mesh.position).divideScalar(200);
+}
+
+function ruleTwo(neighbors, me) {
+	var pushBack = new THREE.Vector3();
 	var temp = new THREE.Vector3();
-	if (accum > 0) {
-		vec1 = vec1.divideScalar(accum);
-		vec1 = vec1.sub(this.mesh.position);
-		vec1 = vec1.divideScalar(200); //Magic numbers
-		temp = temp.add(vec1);
+	for (i in neighbors) {
+			if (me.mesh != neighbors[i].mesh) {
+				temp.subVectors(me.mesh.position, neighbors[i].mesh.position);
 
-		// vec3 = vec3.divideScalar(accum);
-		// vec3 = vec3.sub(this.velocity);
-		// vec3 = vec3.divideScalar(8); //Magic numbers
-		
-		vec3 /= accum;
-		vec3 = (vec3 - this.velocity.length()) / 25;
-		// temp = temp.add(vec3);
-		// temp.addScalar(vec3);
+				if (Math.abs(temp.length()) < 10) {
+					pushBack.add(temp);
+				}
+			}
+	}
+	return pushBack;
+}
 
-	} 
-	vec2.divideScalar(1);
-	temp = temp.add(vec2);
+function ruleThree(neighbors, me) {
+	var velocity = new THREE.Vector3();
+	var accum = 0;
+	for (i in neighbors) {
+				if (me.mesh != neighbors[i].mesh && 
+			me.mesh.position.distanceTo(neighbors[i].mesh.position) < 200) {
+					accum++;
+					velocity.add(neighbors[i].velocity);
+				}
+	}
+	velocity.divideScalar(accum);
+	velocity.sub(me.velocity);
+	return velocity.divideScalar(10);
+}
+
+function updatePosition(neighbors) {
+	var vec1 = ruleOne(neighbors, this);
+	var vec2 = ruleTwo(neighbors, this);
+	var vec3 = ruleThree(neighbors, this);
 
 
-	// this.velocity.x *= Math.random();
-	// this.velocity.y *= Math.random();
-	this.velocity.add(temp);
+	this.velocity.add(vec1);
+	this.velocity.add(vec2);
+	this.velocity.add(vec3);
+	this.velocity.add(bound(this));
 
 	this.velocity.clampLength(-1,1);
 
-
 	
 	this.mesh.position.add(this.velocity);
-	// this.mesh.lookAt(new THREE.Vector3().addVectors(this.velocity,this.mesh.position) );
-	//TODO: This needs to be generalized (get rid of magic numbers)
-	if (this.mesh.position.y > 50) {
-		this.mesh.position.y = -50;
-	}
-	if (this.mesh.position.y < -50) {
-		this.mesh.position.y = 50;
-	}
+	this.mesh.position.setZ(0);
+	
 
-	if (this.mesh.position.x > 100) {
-		this.mesh.position.x = -100;
+}
+
+function bound(boid) {
+	var distance = .5;
+	var xMin = -75;
+	var xMax = 75;
+	var yMin = -75;
+	var yMax = 75;
+	var vector = new THREE.Vector3();
+	if (boid.mesh.position.x < xMin) {
+		vector.x = distance;;
 	}
-	if (this.mesh.position.x < -100) {
-		this.mesh.position.x = 100;
+	else if (boid.mesh.position.x > xMax) {
+		vector.x = -distance;;
 	}
-	this.mesh.position.z = 0;
+	if (boid.mesh.position.y < yMin) {
+		vector.y = distance;
+	}
+	else if (boid.mesh.position.y > yMax) {
+		vector.y = -distance;
+	}
+	return vector;
 }
 
 function boidGeom() {
